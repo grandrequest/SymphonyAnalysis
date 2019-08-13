@@ -125,7 +125,7 @@ elseif strncmp(mode, 'plotSpatial', 11)
             end
 
             if posIndex >= 3
-                gaussianEnable = 0;
+                gaussianEnable = 1;
 %                 gaussianEnable = sign(voltage) + .001;
                 [gfits{a,1}, contourObjects{a,1}] = plotSpatial(goodPositions, vals, sprintf('%s at V = %d mV, intensity = %f', modeLabel, voltage, intensity), 1, gaussianEnable, {thresholdLevel, 1});
                 gfits(a, 2:3) = {voltage, intensity};
