@@ -206,7 +206,7 @@ elseif strncmp(mode, 'plotSpatial', 11)
         axis off
         ax = gca;
         ax.Visible = 'off';
-        
+        fprintf('%d  %d  %d  %d  %d',gfit('sigma2X'), gfit('sigma2Y'), -gfit('angle'), gfit('centerX'), gfit('centerY'))
 %         e = ellipse(gfit('sigma2X'), gfit('sigma2Y'), -gfit('angle'), gfit('centerX'), gfit('centerY'), num_columns);
 %         set(e, 'LineWidth', 2);
 %         line(gfit('centerX') + [-l, l]/2, gfit('centerY') * [1,1], 'LineWidth', 1.5, 'Color', num_columns);
@@ -358,7 +358,7 @@ elseif strcmp(mode, 'overlap')
     output.percentile = percentile;
     fprintf('saved to %s\n', options.saveFileName)
     save(options.saveFileName, 'output');
-    
+    f
 elseif strcmp(mode, 'subunit') % contrast responses for each position
 
 %     if ad.numValues > 1
