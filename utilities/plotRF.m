@@ -7,11 +7,11 @@ function plotRF(projFolder)
 excel = readtable('C:\Users\david\Google Drive\ReceptiveFieldProject\RFDataMine_sheet.xlsx');
 rowInd = find(~ismissing(excel{:,9}));
 excel = excel(rowInd,[1,7,8,9,10,11]);
+excel = excel(2:end,:);
 cellNames = excel{:,1};
 
 %% loop through cellData to collect location information
 Locations = [];
-rfData = [];
 Count = 1;
 for fi = 1:length(cellNames)
     fprintf('processing cellData %d of %d: %s\n', fi, length(cellNames), cellNames{fi})
@@ -33,11 +33,14 @@ for fi = 1:length(cellNames)
 end
 
 %% Solve for X and Y compenents of RF to plot
+rfData = cellfun(@str2num,rfData);
+rotInd = find(rfData(:,2) > rfData(:,1))
+rfData(rotInd, 3) = rfData(rotInd, 3) + pi/2;
 rfData(:,1:2) = sort(rfData(:,1:2),2); %sort into major and minor axes
-rfData(:,3) = rfData(:,3) + pi/2; %angle seems to be 90 deg off, at least for left eye rigB
 amplitude = rfData(:,2) ./ rfData(:,1) - 1;
 xComponent = amplitude .* cos(rfData(:,3));
 yComponent = amplitude .* sin(rfData(:,3));
+
 
 
 %% Find Indices of left and right eye
