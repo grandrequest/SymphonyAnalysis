@@ -36,7 +36,7 @@ function cells = symphony2Mapper(fname)
         cells(i) = getCellData(fname, labels{i}, h5epochs);
         cells(i).attributes = getSourceAttributes(sourceTree, labels{i}, cells(i).attributes);
         
-% Deleted - no 'eye' attribute for our data. 
+% % Deleted - no 'eye' attribute for our data. 
 %         if strcmpi(cells(i).attributes('eye'), 'left')
 %             eyeIndex = -1;
 %         elseif strcmpi(cells(i).attributes('eye'), 'right')
@@ -154,6 +154,8 @@ function label = getSourceLabel(fname, epochGroup)
     % check if it is h5 Groups
     % if not present it should be in links
     
+    % SINHA: num of groups is 5. Source is fifth group.Write code to grab
+    % by name instead. 
     if numel(epochGroup.Groups) == 5
         source = epochGroup.Groups(5).Name;
     else
