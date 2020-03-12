@@ -36,13 +36,13 @@ function cells = symphony2Mapper(fname)
         cells(i) = getCellData(fname, labels{i}, h5epochs);
         cells(i).attributes = getSourceAttributes(sourceTree, labels{i}, cells(i).attributes);
         
-% % Deleted - no 'eye' attribute for our data. 
 %         if strcmpi(cells(i).attributes('eye'), 'left')
 %             eyeIndex = -1;
 %         elseif strcmpi(cells(i).attributes('eye'), 'right')
 %             eyeIndex = 1;
 %         end
 %         cells(i).location = [cells(i).attributes('location'), eyeIndex];
+        cells(i).location = [0 0 0];
     end
 end
 
@@ -72,15 +72,22 @@ function cell = getCellData(fname, cellLabel, h5Epochs)
             parameterMap('displayName') = readableDisplayName;
         end
         lastProtocolId = protocolId;       
-
+        
         parameterMap = buildAttributes(h5Epochs(index).Groups(2), fname, parameterMap);
         parameterMap('epochNum') = i;
         parameterMap('epochStartTime') = sortedEpochTime(i);
+        
+        %Sinha attributes added 
+        %todo: integrate with other file types by checking for group name,
+        %not position
+        % 1, 3, 4, 5 = Backgrounds, Stimuli
+        parameterMap = getBackgrounds(h5Epochs(index).Groups(1).Groups, fname, parameterMap, 'Background');
+        parameterMap = getBackgrounds(h5Epochs(index).Groups(5).Groups, fname, parameterMap, 'Stimulus');
 
         e = EpochData;
         e.parentCell = cell;
         e.attributes = containers.Map(parameterMap.keys, parameterMap.values);
-        e.dataLinks = getResponses(h5Epochs(index).Groups(3).Groups);
+        e.dataLinks = getResponses(h5Epochs(index).Groups(4).Groups);
         epochData(i)= e;
     end
 
@@ -93,18 +100,17 @@ function cell = getCellData(fname, cellLabel, h5Epochs)
     
     
     % Find where the cell number is listed in the name of the cell source, then reformat it for the filename
-    [startIndex, endIndex] = regexp(cellLabel, '[0-9]+');
-    if startIndex == 1
-        savedFileName = [file 'c' cellLabel];
-    elseif startIndex == 2
-        savedFileName = [file cellLabel(2:end)];
-    elseif startIndex == 3
-        savedFileName = [file 'c' cellLabel(3:end)];
-    elseif startIndex == 5
-        savedFileName = [file 'c' cellLabel(startIndex:endIndex)]; 
-    else 
-        savedFileName = file;
-    end
+%     numPositionInLabel = regexp(cellLabel, '[0-9]+');
+%     if numPositionInLabel == 1
+%         savedFileName = [file 'c' cellLabel];
+%     elseif numPositionInLabel == 2
+%         savedFileName = [file cellLabel(2:end)];
+%     elseif numPositionInLabel == 3
+%         savedFileName = [file 'c' cellLabel(3:end)];
+%     else 
+%         savedFileName = file;
+%     end
+    savedFileName = [file cellLabel];
     cell.savedFileName = savedFileName;
     
     fprintf('Extracted %s\n', savedFileName)
@@ -134,6 +140,47 @@ function map = getResponses(responseGroups)
     end
 end
 
+function map = getBackgrounds(backgroundGroups,fname, map, folderName)
+    if nargin < 3
+        map = containers.Map();
+    end
+    if ischar(backgroundGroups)
+        backgroundGroups = h5info(fname, backgroundGroups);
+    end 
+   
+    for i = 1 : numel(backgroundGroups)
+        devicePath = backgroundGroups(i).Name;
+        attributes = backgroundGroups(i).Attributes;
+        
+        indices = strfind(devicePath, '/');
+        id = devicePath(indices(end) + 1 : end);
+        deviceArray = strsplit(id, '-');
+        deviceName = deviceArray{1};
+        
+        for j = 1 : length(attributes)
+            name = attributes(j).Name;
+            if ~strcmp(name, 'uuid')
+                root = strfind(name, '/');
+                value = attributes(j).Value;
+
+                % convert column vectors to row vectors
+                if size(value, 1) > 1
+                    value = reshape(value, 1, []);
+                end
+
+                if ~ isempty(root)
+                    name = attributes(i).Name(root(end) + 1 : end);
+                end
+                % and if to check name for particular metadata
+                key = convertStringsToChars(strcat(folderName,':',deviceName,':',name));
+                map(key) = value;
+            end
+        end 
+        
+        map = buildAttributesRecursive(backgroundGroups(i).Groups,fname, map, folderName);
+    end
+end
+
 function epochGroupMap = getEpochsByCellLabel(fname, epochGroups)
     epochGroupMap = containers.Map();
     
@@ -154,8 +201,6 @@ function label = getSourceLabel(fname, epochGroup)
     % check if it is h5 Groups
     % if not present it should be in links
     
-    % SINHA: num of groups is 5. Source is fifth group.Write code to grab
-    % by name instead. 
     if numel(epochGroup.Groups) == 5
         source = epochGroup.Groups(5).Name;
     else
@@ -170,9 +215,38 @@ function label = getSourceLabel(fname, epochGroup)
     end
 end
 
-function map = buildAttributes(h5group, fname, map)
+function map = buildAttributesRecursive(h5group, fname, map, folderName)
     if nargin < 3
         map = containers.Map();
+    end 
+
+    if ischar(h5group)
+        h5group = h5info(fname, h5group);
+    end
+    
+    for i=1:numel(h5group.Groups)
+        %map = buildAttributes(h5group.Groups(i), fname, map, folderName);
+        
+        if nargin < 4
+            map = buildAttributes(h5group.Groups(i), fname, map);
+            folderName = h5.Groups(i).Name;
+        else 
+            map = buildAttributes(h5group.Groups(i), fname, map, folderName);
+        end
+        
+        if numel(h5group.Groups(i).Groups) > 0 
+          map = buildAttributesRecursive(h5group.Groups(i).Groups, fname, map, folderName);
+        end
+    end
+    
+end 
+
+function map = buildAttributes(h5group, fname, map, folderName)
+    if nargin < 3
+        map = containers.Map();
+    end
+    if nargin < 4
+        folderName = '';
     end
     if ischar(h5group)
         h5group = h5info(fname, h5group);
@@ -192,7 +266,13 @@ function map = buildAttributes(h5group, fname, map)
         if ~ isempty(root)
             name = attributes(i).Name(root(end) + 1 : end);
         end
-        map(getMappedAttribute(name)) = value;
+        
+        if ~strcmp(folderName, '')
+            key = strcat(folderName, ":",getMappedAttribute(name));
+            map(convertStringsToChars(key)) = value;
+        else
+            map(getMappedAttribute(name)) = value;
+        end
     end
 end
 
