@@ -86,7 +86,7 @@ classdef MultiPulseAnalysis < AnalysisTree
             %parameter you want to collect, the second is whatever name you
             %want to give it.
             obj = obj.percolateUp(leafIDs, ...
-                'splitValue', 'pulseAmplitude');
+                'splitValue', 'lightAmplitude');
             
             %collect lists of parameters by their type, either ones that
             %have a value for each epoch or those that have a single value

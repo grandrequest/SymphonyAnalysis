@@ -1,7 +1,7 @@
 function v = isSpikeEpoch(epoch, streamName)
 v = false;
 if strcmp(streamName, 'Amplifier_Ch1')
-    if strcmp(epoch.get('ampMode'), 'Cell attached')
+    if (strcmp(epoch.get('ampMode'), 'Cell attached')) || (epoch.get('Background_Amp1_value') == 0)
         v = true;
     elseif strcmp(epoch.get('ampMode'), 'Whole cell')
         try 
@@ -16,7 +16,7 @@ if strcmp(streamName, 'Amplifier_Ch1')
     end
 elseif strcmp(streamName, 'Amplifier_Ch2')
 %     v = true;
-    if strcmp(epoch.get('amp2Mode'), 'Cell attached')
+    if (strcmp(epoch.get('amp2Mode'), 'Cell attached')) || (epoch.get('Background_Amp1_value') == 0)
         v = true;
     elseif strcmp(epoch.get('amp2Mode'), 'Whole cell')
         try 

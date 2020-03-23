@@ -239,7 +239,7 @@ classdef SpikeDetectorGUI < handle
                         end
                     end
                     
-                elseif strcmp(epoch.get('ampMode'), 'Cell attached')
+                elseif strcmp(epoch.get('ampMode'), 'Cell attached') || (epoch.get('Background_Amp1_value') == 0)
                     spikeResults = SpikeDetector_simple(response, 1./obj.sampleRate, obj.threshold);
                     spikeIndices = spikeResults.sp;
                 else %different spike dtector for Iclamp data

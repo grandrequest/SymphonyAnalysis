@@ -152,8 +152,10 @@ function map = getBackgrounds(backgroundGroups,fname, map, folderName)
         devicePath = backgroundGroups(i).Name;
         attributes = backgroundGroups(i).Attributes;
         
+        % parse path
         indices = strfind(devicePath, '/');
         id = devicePath(indices(end) + 1 : end);
+        % parse name
         deviceArray = strsplit(id, '-');
         deviceName = deviceArray{1};
         
@@ -172,7 +174,7 @@ function map = getBackgrounds(backgroundGroups,fname, map, folderName)
                     name = attributes(i).Name(root(end) + 1 : end);
                 end
                 % and if to check name for particular metadata
-                key = convertStringsToChars(strcat(folderName,':',deviceName,':',name));
+                key = convertStringsToChars(strcat(folderName,'_',deviceName,'_',name));
                 map(key) = value;
             end
         end 
@@ -268,7 +270,7 @@ function map = buildAttributes(h5group, fname, map, folderName)
         end
         
         if ~strcmp(folderName, '')
-            key = strcat(folderName, ":",getMappedAttribute(name));
+            key = strcat(folderName, "_",getMappedAttribute(name));
             map(convertStringsToChars(key)) = value;
         else
             map(getMappedAttribute(name)) = value;

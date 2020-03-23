@@ -64,8 +64,7 @@ for i=1:Ntraces
         
         
         %[Ind,centroid_amps] = kmeans(peakAmps,3,'start',startAmps,'Options',options);
-        [Ind,centroid_amps] = kmeans(sqrt(peakAmps),2,'start',sqrt([median(peakAmps);max(peakAmps)]),'Options',options);
-        
+        [Ind,centroid_amps] = kmeans(sqrt(peakAmps'),2,'start',sqrt([median(peakAmps); max(peakAmps)]),'Options',options);
         %other clustering approaches that I dedcided not to use
 %         
 %         figure(2);

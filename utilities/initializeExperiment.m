@@ -1,4 +1,7 @@
 function initializeExperiment(expname, myname)
+% Parse Raw Data File
+% Create temp project folder
+% Open lab data gui to this temp project folder. 
     fprintf('Initializing experiment %s\n', expname);
     
     status = checkoutCellDataForRawData(expname);
